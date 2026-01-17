@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lovable vs Claude Code - AI 개발 도구 비교</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --lovable-color: #ff6b9d;
+      --claude-color: #d97706;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border-color: #334155;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      line-height: 1.7;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    }
+
+    header h1 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    header h1 .lovable {
+      color: var(--lovable-color);
+    }
+
+    header h1 .vs {
+      color: var(--text-secondary);
+      font-weight: 400;
+      margin: 0 0.5rem;
+    }
+
+    header h1 .claude {
+      color: var(--claude-color);
+    }
+
+    header p {
+      color: var(--text-secondary);
+      font-size: 1.2rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Main Content */
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* Intro Section */
+    .intro {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 4rem;
+    }
+
+    .intro-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 2rem;
+      border: 1px solid var(--border-color);
+    }
+
+    .intro-card.lovable {
+      border-top: 4px solid var(--lovable-color);
+    }
+
+    .intro-card.claude {
+      border-top: 4px solid var(--claude-color);
+    }
+
+    .intro-card h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .intro-card.lovable h2 {
+      color: var(--lovable-color);
+    }
+
+    .intro-card.claude h2 {
+      color: var(--claude-color);
+    }
+
+    .intro-card p {
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .intro-card.lovable .tag {
+      background: rgba(255, 107, 157, 0.2);
+      color: var(--lovable-color);
+    }
+
+    .intro-card.claude .tag {
+      background: rgba(217, 119, 6, 0.2);
+      color: var(--claude-color);
+    }
+
+    /* Comparison Table */
+    .comparison-section {
+      margin-bottom: 4rem;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .comparison-table {
+      background: var(--bg-card);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .comparison-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .comparison-row:last-child {
+      border-bottom: none;
+    }
+
+    .comparison-row.header {
+      background: rgba(255, 255, 255, 0.05);
+      font-weight: 700;
+    }
+
+    .comparison-cell {
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .comparison-cell:not(:last-child) {
+      border-right: 1px solid var(--border-color);
+    }
+
+    .comparison-row.header .comparison-cell:nth-child(2) {
+      color: var(--lovable-color);
+      justify-content: center;
+    }
+
+    .comparison-row.header .comparison-cell:nth-child(3) {
+      color: var(--claude-color);
+      justify-content: center;
+    }
+
+    .comparison-cell.feature {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .comparison-cell:not(.feature) {
+      color: var(--text-secondary);
+      justify-content: center;
+      text-align: center;
+    }
+
+    .check {
+      color: #22c55e;
+      font-size: 1.25rem;
+    }
+
+    .cross {
+      color: #ef4444;
+      font-size: 1.25rem;
+    }
+
+    /* Use Cases */
+    .use-cases {
+      margin-bottom: 4rem;
+    }
+
+    .use-cases-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+
+    .use-case-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 2rem;
+      border: 1px solid var(--border-color);
+    }
+
+    .use-case-card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .use-case-card ul {
+      list-style: none;
+    }
+
+    .use-case-card li {
+      color: var(--text-secondary);
+      padding: 0.5rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+    }
+
+    .use-case-card li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--lovable-color);
+    }
+
+    .use-case-card.claude li::before {
+      color: var(--claude-color);
+    }
+
+    /* Verdict */
+    .verdict {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 3rem;
+      text-align: center;
+      border: 1px solid var(--border-color);
+      margin-bottom: 4rem;
+    }
+
+    .verdict h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .verdict p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto 1rem;
+    }
+
+    .verdict-boxes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .verdict-box {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 1.5rem;
+      border-radius: 12px;
+    }
+
+    .verdict-box h4 {
+      margin-bottom: 0.5rem;
+    }
+
+    .verdict-box.lovable h4 {
+      color: var(--lovable-color);
+    }
+
+    .verdict-box.claude h4 {
+      color: var(--claude-color);
+    }
+
+    .verdict-box p {
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border-color);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 2rem;
+      }
+
+      .comparison-row {
+        grid-template-columns: 1fr;
+      }
+
+      .comparison-cell:not(:last-child) {
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .comparison-row.header {
+        display: none;
+      }
+
+      .comparison-cell::before {
+        content: attr(data-label);
+        font-weight: 600;
+        margin-right: 1rem;
+      }
+
+      .comparison-cell:not(.feature) {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>
+      <span class="lovable">Lovable</span>
+      <span class="vs">vs</span>
+      <span class="claude">Claude Code</span>
+    </h1>
+    <p>AI 기반 개발 도구, 어떤 것이 나에게 맞을까?</p>
+  </header>
+
+  <main>
+    <!-- Intro Cards -->
+    <section class="intro">
+      <div class="intro-card lovable">
+        <h2>Lovable</h2>
+        <p>
+          프롬프트만으로 웹 애플리케이션을 만들어주는 AI 풀스택 엔지니어.
+          코딩 경험이 없어도 아이디어를 실제 작동하는 앱으로 변환할 수 있습니다.
+        </p>
+        <div class="tags">
+          <span class="tag">노코드/로우코드</span>
+          <span class="tag">웹 기반</span>
+          <span class="tag">풀스택</span>
+          <span class="tag">자동 배포</span>
+        </div>
+      </div>
+
+      <div class="intro-card claude">
+        <h2>Claude Code</h2>
+        <p>
+          Anthropic의 공식 CLI 도구로, 터미널에서 Claude와 함께 코딩합니다.
+          기존 코드베이스를 이해하고 수정하며, 개발자의 생산성을 극대화합니다.
+        </p>
+        <div class="tags">
+          <span class="tag">CLI 기반</span>
+          <span class="tag">코드 에디팅</span>
+          <span class="tag">Git 통합</span>
+          <span class="tag">에이전트 모드</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison Table -->
+    <section class="comparison-section">
+      <h2 class="section-title">기능 비교</h2>
+      <div class="comparison-table">
+        <div class="comparison-row header">
+          <div class="comparison-cell">기능</div>
+          <div class="comparison-cell">Lovable</div>
+          <div class="comparison-cell">Claude Code</div>
+        </div>
+        <div class="comparison-row">
+          <div class="comparison-cell feature">코딩 경험 필요</div>
+          <div class="comparison-cell" data-label="Lovable">필요 없음</div>
+          <div class="comparison-cell" data-label="Claude Code">권장됨</div>
+        </div>
+        <div class="comparison-row">
+          <div class="comparison-cell feature">인터페이스</div>
+          <div class="comparison-cell" data-label="Lovable">웹 브라우저</div>
+          <div class="comparison-cell" data-label="Claude Code">터미널 (CLI)</div>
+        </div>
+        <div class="comparison-row">
+          <div class="comparison-cell feature">기존 프로젝트 수정</div>
+          <div class="comparison-cell" data-label="Lovable">제한적</div>
+          <div class="comparison-cell" data-label="Claude Code"><span class="check">●</span> 강력 지원</div>
+        </div>
+        <div class="comparison-row">
+          <div class="comparison-cell feature">새 프로젝트 생성</div>
+          <div class="comparison-cell" data-label="Lovable"><span class="check">●</span> 강력 지원</div>
+          <div class="comparison-cell" data-label="Claude Code"><span class="check">●</span> 지원</div>
+        </div>
+        <div class="comparison-row">
+          <div class="comparison-cell feature">자동 배포</div>
+          <div class="comparison-cell" data-label="Lovable"><span class="check">●</span> 내장</div>
+          <div class="comparison-cell" data-label="Claude Code">직접 설정</div>
+        </div>
+        <div class="comparison-row">
+          <div class="comparison-cell feature">백엔드/DB 통합</div>
+          <div class="comparison-cell" data-label="Lovable">Supabase 내장</div>
+          <div class="comparison-cell" data-label="Claude Code">자유롭게 선택</div>
+        </div>
+        <div class="comparison-row">
+          <div class="comparison-cell feature">Git 통합</div>
+          <div class="comparison-cell" data-label="Lovable">GitHub 연동</div>
+          <div class="comparison-cell" data-label="Claude Code"><span class="check">●</span> 완벽 지원</div>
+        </div>
+        <div class="comparison-row">
+          <div class="comparison-cell feature">로컬 파일 접근</div>
+          <div class="comparison-cell" data-label="Lovable"><span class="cross">●</span></div>
+          <div class="comparison-cell" data-label="Claude Code"><span class="check">●</span></div>
+        </div>
+        <div class="comparison-row">
+          <div class="comparison-cell feature">다중 언어 지원</div>
+          <div class="comparison-cell" data-label="Lovable">React/TS 중심</div>
+          <div class="comparison-cell" data-label="Claude Code">모든 언어</div>
+        </div>
+        <div class="comparison-row">
+          <div class="comparison-cell feature">가격</div>
+          <div class="comparison-cell" data-label="Lovable">무료 + 유료 플랜</div>
+          <div class="comparison-cell" data-label="Claude Code">API 사용량 기반</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Use Cases -->
+    <section class="use-cases">
+      <h2 class="section-title">이런 경우에 사용하세요</h2>
+      <div class="use-cases-grid">
+        <div class="use-case-card lovable">
+          <h3>Lovable을 선택하세요</h3>
+          <ul>
+            <li>코딩을 모르지만 앱을 만들고 싶을 때</li>
+            <li>MVP나 프로토타입을 빠르게 만들 때</li>
+            <li>랜딩 페이지나 간단한 웹앱이 필요할 때</li>
+            <li>배포까지 한 번에 해결하고 싶을 때</li>
+            <li>디자인부터 개발까지 올인원 솔루션이 필요할 때</li>
+          </ul>
+        </div>
+
+        <div class="use-case-card claude">
+          <h3>Claude Code를 선택하세요</h3>
+          <ul>
+            <li>기존 코드베이스를 수정하거나 리팩토링할 때</li>
+            <li>복잡한 비즈니스 로직을 구현할 때</li>
+            <li>다양한 언어와 프레임워크를 사용할 때</li>
+            <li>세밀한 코드 제어가 필요할 때</li>
+            <li>터미널에서 작업하는 것을 선호할 때</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Verdict -->
+    <section class="verdict">
+      <h2>결론</h2>
+      <p>
+        Lovable과 Claude Code는 서로 다른 목적을 가진 도구입니다.
+        경쟁 관계가 아니라 상호 보완적인 관계로 볼 수 있습니다.
+      </p>
+      <div class="verdict-boxes">
+        <div class="verdict-box lovable">
+          <h4>Lovable</h4>
+          <p>"아이디어를 빠르게 현실로"<br>비개발자도 앱을 만들 수 있는 마법</p>
+        </div>
+        <div class="verdict-box claude">
+          <h4>Claude Code</h4>
+          <p>"개발자의 생산성 극대화"<br>AI와 함께하는 전문적인 코딩</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>2026 AI Development Tools Comparison</p>
+  </footer>
+</body>
+</html>
