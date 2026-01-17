@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kanban Board - Trello Style</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0079bf 0%, #5067c5 100%);
+      min-height: 100vh;
+      overflow-x: auto;
+    }
+
+    /* Header */
+    .header {
+      background: rgba(0, 0, 0, 0.15);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header h1 {
+      color: white;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-clear {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .btn-clear:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Board */
+    .board {
+      display: flex;
+      gap: 16px;
+      padding: 20px;
+      align-items: flex-start;
+      min-height: calc(100vh - 60px);
+    }
+
+    /* Column */
+    .column {
+      background: #ebecf0;
+      border-radius: 12px;
+      min-width: 300px;
+      max-width: 300px;
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 100px);
+    }
+
+    .column-header {
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .column-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #172b4d;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 2px solid transparent;
+    }
+
+    .column-title:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .column-title:focus {
+      outline: none;
+      background: white;
+      border-color: #0079bf;
+    }
+
+    .column-menu {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 4px;
+      color: #6b778c;
+      font-size: 1.2rem;
+    }
+
+    .column-menu:hover {
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .cards-container {
+      padding: 0 12px;
+      overflow-y: auto;
+      flex: 1;
+      min-height: 20px;
+    }
+
+    .cards-container.drag-over {
+      background: rgba(0, 121, 191, 0.1);
+      border-radius: 8px;
+    }
+
+    /* Card */
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      cursor: grab;
+      transition: transform 0.1s, box-shadow 0.1s;
+      position: relative;
+    }
+
+    .card:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .card:active {
+      cursor: grabbing;
+      transform: rotate(3deg);
+    }
+
+    .card.dragging {
+      opacity: 0.5;
+      transform: rotate(5deg);
+    }
+
+    .card-labels {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .card-label {
+      width: 40px;
+      height: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .card-label.green { background: #61bd4f; }
+    .card-label.yellow { background: #f2d600; }
+    .card-label.orange { background: #ff9f1a; }
+    .card-label.red { background: #eb5a46; }
+    .card-label.purple { background: #c377e0; }
+    .card-label.blue { background: #0079bf; }
+
+    .card-title {
+      color: #172b4d;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .card-title:focus {
+      outline: none;
+      background: #e4f0f6;
+      padding: 4px;
+      margin: -4px;
+      border-radius: 4px;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      color: #6b778c;
+      font-size: 0.8rem;
+    }
+
+    .card-footer span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .card-delete {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: none;
+      border: none;
+      color: #aaa;
+      cursor: pointer;
+      font-size: 1rem;
+      opacity: 0;
+      transition: opacity 0.2s;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .card:hover .card-delete {
+      opacity: 1;
+    }
+
+    .card-delete:hover {
+      color: #eb5a46;
+      background: rgba(235, 90, 70, 0.1);
+    }
+
+    /* Add Card */
+    .add-card-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      color: #5e6c84;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.2s, color 0.2s;
+      margin: 8px 12px 12px;
+    }
+
+    .add-card-btn:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: #172b4d;
+    }
+
+    .add-card-form {
+      padding: 8px 12px 12px;
+      display: none;
+    }
+
+    .add-card-form.active {
+      display: block;
+    }
+
+    .add-card-form textarea {
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      resize: none;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      min-height: 60px;
+    }
+
+    .add-card-form textarea:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px #0079bf;
+    }
+
+    .add-card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-add {
+      background: #0079bf;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .btn-add:hover {
+      background: #026aa7;
+    }
+
+    .btn-cancel {
+      background: none;
+      border: none;
+      padding: 8px;
+      cursor: pointer;
+      color: #6b778c;
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+
+    .btn-cancel:hover {
+      color: #172b4d;
+    }
+
+    /* Add Column */
+    .add-column {
+      background: rgba(255, 255, 255, 0.24);
+      border-radius: 12px;
+      min-width: 300px;
+      padding: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .add-column:hover {
+      background: rgba(255, 255, 255, 0.32);
+    }
+
+    .add-column-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      font-weight: 500;
+    }
+
+    .add-column-form {
+      display: none;
+    }
+
+    .add-column-form.active {
+      display: block;
+    }
+
+    .add-column-form input {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+
+    .add-column-form input:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px #0079bf;
+    }
+
+    /* Label Picker */
+    .label-picker {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      padding: 12px;
+      z-index: 100;
+      min-width: 200px;
+    }
+
+    .label-picker.active {
+      display: block;
+    }
+
+    .label-picker-title {
+      font-size: 0.8rem;
+      color: #5e6c84;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .label-options {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .label-option {
+      height: 32px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.1s;
+    }
+
+    .label-option:hover {
+      transform: scale(1.02);
+    }
+
+    .label-option.selected {
+      border-color: #172b4d;
+    }
+
+    /* Scrollbar */
+    .cards-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .cards-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .cards-container::-webkit-scrollbar-thumb {
+      background: #c4c9cc;
+      border-radius: 4px;
+    }
+
+    .cards-container::-webkit-scrollbar-thumb:hover {
+      background: #a5acb0;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .modal h3 {
+      margin-bottom: 16px;
+      color: #172b4d;
+    }
+
+    .modal p {
+      color: #5e6c84;
+      margin-bottom: 20px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .btn-danger {
+      background: #eb5a46;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-secondary {
+      background: #f4f5f7;
+      color: #172b4d;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>Kanban Board</h1>
+    <div class="header-actions">
+      <button class="btn-clear" onclick="clearBoard()">보드 초기화</button>
+    </div>
+  </header>
+
+  <main class="board" id="board">
+    <!-- Columns will be rendered here -->
+  </main>
+
+  <!-- Clear Confirmation Modal -->
+  <div class="modal-overlay" id="clearModal">
+    <div class="modal">
+      <h3>보드 초기화</h3>
+      <p>모든 컬럼과 카드가 삭제됩니다. 계속하시겠습니까?</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeClearModal()">취소</button>
+        <button class="btn-danger" onclick="confirmClear()">초기화</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initial data
+    const defaultData = {
+      columns: [
+        {
+          id: 'col-1',
+          title: '할 일',
+          cards: [
+            { id: 'card-1', title: '프로젝트 기획서 작성', labels: ['blue'] },
+            { id: 'card-2', title: '디자인 시안 검토', labels: ['yellow'] },
+            { id: 'card-3', title: '회의 자료 준비', labels: ['green'] }
+          ]
+        },
+        {
+          id: 'col-2',
+          title: '진행 중',
+          cards: [
+            { id: 'card-4', title: 'API 개발', labels: ['purple', 'blue'] },
+            { id: 'card-5', title: '프론트엔드 구현', labels: ['orange'] }
+          ]
+        },
+        {
+          id: 'col-3',
+          title: '완료',
+          cards: [
+            { id: 'card-6', title: '요구사항 분석', labels: ['green'] }
+          ]
+        }
+      ]
+    };
+
+    // Load data from localStorage or use default
+    let boardData = JSON.parse(localStorage.getItem('kanbanBoard')) || defaultData;
+
+    // Save to localStorage
+    function saveBoard() {
+      localStorage.setItem('kanbanBoard', JSON.stringify(boardData));
+    }
+
+    // Generate unique ID
+    function generateId() {
+      return 'id-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    }
+
+    // Render the board
+    function renderBoard() {
+      const board = document.getElementById('board');
+      board.innerHTML = '';
+
+      boardData.columns.forEach(column => {
+        board.appendChild(createColumnElement(column));
+      });
+
+      // Add "Add Column" button
+      board.appendChild(createAddColumnElement());
+    }
+
+    // Create column element
+    function createColumnElement(column) {
+      const colEl = document.createElement('div');
+      colEl.className = 'column';
+      colEl.dataset.columnId = column.id;
+
+      colEl.innerHTML = `
+        <div class="column-header">
+          <span class="column-title" contenteditable="true"
+                onblur="updateColumnTitle('${column.id}', this.textContent)"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${column.title}</span>
+          <button class="column-menu" onclick="deleteColumn('${column.id}')">×</button>
+        </div>
+        <div class="cards-container"
+             ondragover="handleDragOver(event)"
+             ondragleave="handleDragLeave(event)"
+             ondrop="handleDrop(event, '${column.id}')">
+          ${column.cards.map(card => createCardHTML(card, column.id)).join('')}
+        </div>
+        <div class="add-card-btn" onclick="showAddCardForm('${column.id}')">
+          <span>+</span>
+          <span>카드 추가</span>
+        </div>
+        <div class="add-card-form" id="add-form-${column.id}">
+          <textarea placeholder="카드 제목을 입력하세요..."
+                    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addCard('${column.id}');}"></textarea>
+          <div class="add-card-actions">
+            <button class="btn-add" onclick="addCard('${column.id}')">카드 추가</button>
+            <button class="btn-cancel" onclick="hideAddCardForm('${column.id}')">×</button>
+          </div>
+        </div>
+      `;
+
+      return colEl;
+    }
+
+    // Create card HTML
+    function createCardHTML(card, columnId) {
+      const labelsHTML = card.labels.map(label =>
+        `<div class="card-label ${label}"></div>`
+      ).join('');
+
+      return `
+        <div class="card" draggable="true"
+             data-card-id="${card.id}"
+             ondragstart="handleDragStart(event, '${card.id}', '${columnId}')"
+             ondragend="handleDragEnd(event)">
+          <button class="card-delete" onclick="deleteCard('${columnId}', '${card.id}')">×</button>
+          <div class="card-labels" onclick="toggleLabelPicker(event, '${card.id}', '${columnId}')">
+            ${labelsHTML || '<div style="height:8px;"></div>'}
+          </div>
+          <div class="card-title" contenteditable="true"
+               onblur="updateCardTitle('${columnId}', '${card.id}', this.textContent)"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${card.title}</div>
+        </div>
+      `;
+    }
+
+    // Create add column element
+    function createAddColumnElement() {
+      const addCol = document.createElement('div');
+      addCol.className = 'add-column';
+      addCol.innerHTML = `
+        <div class="add-column-btn" onclick="showAddColumnForm()">
+          <span>+</span>
+          <span>컬럼 추가</span>
+        </div>
+        <div class="add-column-form" id="add-column-form">
+          <input type="text" placeholder="컬럼 제목을 입력하세요..."
+                 onkeydown="if(event.key==='Enter'){addColumn();}">
+          <div class="add-card-actions">
+            <button class="btn-add" onclick="addColumn()">컬럼 추가</button>
+            <button class="btn-cancel" onclick="hideAddColumnForm()">×</button>
+          </div>
+        </div>
+      `;
+      return addCol;
+    }
+
+    // Show add card form
+    function showAddCardForm(columnId) {
+      const form = document.getElementById(`add-form-${columnId}`);
+      form.classList.add('active');
+      form.querySelector('textarea').focus();
+    }
+
+    // Hide add card form
+    function hideAddCardForm(columnId) {
+      const form = document.getElementById(`add-form-${columnId}`);
+      form.classList.remove('active');
+      form.querySelector('textarea').value = '';
+    }
+
+    // Add card
+    function addCard(columnId) {
+      const form = document.getElementById(`add-form-${columnId}`);
+      const textarea = form.querySelector('textarea');
+      const title = textarea.value.trim();
+
+      if (title) {
+        const column = boardData.columns.find(c => c.id === columnId);
+        if (column) {
+          column.cards.push({
+            id: generateId(),
+            title: title,
+            labels: []
+          });
+          saveBoard();
+          renderBoard();
+        }
+      }
+    }
+
+    // Update card title
+    function updateCardTitle(columnId, cardId, newTitle) {
+      const column = boardData.columns.find(c => c.id === columnId);
+      if (column) {
+        const card = column.cards.find(c => c.id === cardId);
+        if (card) {
+          card.title = newTitle.trim() || card.title;
+          saveBoard();
+        }
+      }
+    }
+
+    // Delete card
+    function deleteCard(columnId, cardId) {
+      const column = boardData.columns.find(c => c.id === columnId);
+      if (column) {
+        column.cards = column.cards.filter(c => c.id !== cardId);
+        saveBoard();
+        renderBoard();
+      }
+    }
+
+    // Show add column form
+    function showAddColumnForm() {
+      const form = document.getElementById('add-column-form');
+      const btn = document.querySelector('.add-column-btn');
+      form.classList.add('active');
+      btn.style.display = 'none';
+      form.querySelector('input').focus();
+    }
+
+    // Hide add column form
+    function hideAddColumnForm() {
+      const form = document.getElementById('add-column-form');
+      const btn = document.querySelector('.add-column-btn');
+      form.classList.remove('active');
+      btn.style.display = 'flex';
+      form.querySelector('input').value = '';
+    }
+
+    // Add column
+    function addColumn() {
+      const form = document.getElementById('add-column-form');
+      const input = form.querySelector('input');
+      const title = input.value.trim();
+
+      if (title) {
+        boardData.columns.push({
+          id: generateId(),
+          title: title,
+          cards: []
+        });
+        saveBoard();
+        renderBoard();
+      }
+    }
+
+    // Update column title
+    function updateColumnTitle(columnId, newTitle) {
+      const column = boardData.columns.find(c => c.id === columnId);
+      if (column) {
+        column.title = newTitle.trim() || column.title;
+        saveBoard();
+      }
+    }
+
+    // Delete column
+    function deleteColumn(columnId) {
+      boardData.columns = boardData.columns.filter(c => c.id !== columnId);
+      saveBoard();
+      renderBoard();
+    }
+
+    // Drag and Drop
+    let draggedCardId = null;
+    let sourceColumnId = null;
+
+    function handleDragStart(event, cardId, columnId) {
+      draggedCardId = cardId;
+      sourceColumnId = columnId;
+      event.target.classList.add('dragging');
+      event.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragEnd(event) {
+      event.target.classList.remove('dragging');
+      document.querySelectorAll('.cards-container').forEach(container => {
+        container.classList.remove('drag-over');
+      });
+    }
+
+    function handleDragOver(event) {
+      event.preventDefault();
+      event.currentTarget.classList.add('drag-over');
+    }
+
+    function handleDragLeave(event) {
+      event.currentTarget.classList.remove('drag-over');
+    }
+
+    function handleDrop(event, targetColumnId) {
+      event.preventDefault();
+      event.currentTarget.classList.remove('drag-over');
+
+      if (draggedCardId && sourceColumnId) {
+        // Find and remove card from source column
+        const sourceColumn = boardData.columns.find(c => c.id === sourceColumnId);
+        const cardIndex = sourceColumn.cards.findIndex(c => c.id === draggedCardId);
+        const [card] = sourceColumn.cards.splice(cardIndex, 1);
+
+        // Add card to target column
+        const targetColumn = boardData.columns.find(c => c.id === targetColumnId);
+        targetColumn.cards.push(card);
+
+        saveBoard();
+        renderBoard();
+      }
+
+      draggedCardId = null;
+      sourceColumnId = null;
+    }
+
+    // Toggle label on card
+    function toggleLabelPicker(event, cardId, columnId) {
+      event.stopPropagation();
+      const colors = ['green', 'yellow', 'orange', 'red', 'purple', 'blue'];
+      const column = boardData.columns.find(c => c.id === columnId);
+      const card = column.cards.find(c => c.id === cardId);
+
+      // Simple label toggle - cycle through adding/removing a label
+      const nextColor = colors.find(c => !card.labels.includes(c)) || colors[0];
+
+      if (card.labels.length < 3) {
+        card.labels.push(nextColor);
+      } else {
+        card.labels = [];
+      }
+
+      saveBoard();
+      renderBoard();
+    }
+
+    // Clear board
+    function clearBoard() {
+      document.getElementById('clearModal').classList.add('active');
+    }
+
+    function closeClearModal() {
+      document.getElementById('clearModal').classList.remove('active');
+    }
+
+    function confirmClear() {
+      boardData = JSON.parse(JSON.stringify(defaultData));
+      saveBoard();
+      renderBoard();
+      closeClearModal();
+    }
+
+    // Initialize
+    renderBoard();
+  </script>
+</body>
+</html>
